@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+	<meta charset="UTF-8">
+	<title>performance tester for responsive images</title>
+
+	<style>
+		.container {
+			width: 720px;
+			margin: auto;
+		}
+		#arena {
+			display: block;
+			margin: auto;
+			border: 1px solid #000;
+			width: 720px;
+			height: 1024px;
+		}
+
+
+	</style>
+
+</head>
+<body>
+
+	<div class="container">
+		<button type="button" data-src="pf-nosrc.html">picturefill no source</button>
+		<button type="button" data-src="pf-lowsrc.html">picturefill low source</button>
+		<hr/>
+
+		<button type="button" data-src="respimage-nosrc.html">respimage no source</button>
+		<button type="button" data-src="respimage-lowsrc.html">respimage low source</button>
+		<div class="arena-area">
+			<iframe id="arena"></iframe>
+		</div>
+
+	<script>
+		document.addEventListener('click', function(e){
+			var src = e.target.getAttribute('data-src');
+			if(src){
+				document.getElementById('arena').src = 'templates/'+src;
+			}
+		}, false);
+	</script>
+	</div>
+</body>
+</html>
