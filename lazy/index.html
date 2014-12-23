@@ -70,13 +70,18 @@
 			height: auto;
 		}
 
+		.lazyloaded,
+		.lazyloading {
+			border: 3px solid #f00 !important;
+		}
+
 	</style>
 
 	<script>
 
 		window.lazySizesConfig = {
 			//clearAttr: true
-			//addClasses: true
+			addClasses: true
 		};
 	</script>
 	<script src="../lazysizes.js" async=""></script>
@@ -287,7 +292,7 @@ https://farm9.staticflickr.com/8200/8248153196_7a7664e147_b.jpg 1024w"
 
 							<div class="item">
 								<div class="intrinsic">
-									<img alt="100%x200" src="https://farm1.staticflickr.com/113/284651694_69e63b374d_m.jpg"
+									<img alt="100%x200"
 										 data-sizes="auto"
 										 data-srcset="https://farm1.staticflickr.com/113/284651694_69e63b374d_m.jpg 240w,
 										 https://farm1.staticflickr.com/113/284651694_69e63b374d.jpg 500w,
