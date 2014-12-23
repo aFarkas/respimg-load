@@ -154,7 +154,7 @@
 						break;
 					}
 
-					if(!loadedSomething && !autoLoadElem &&
+					if(!loadedSomething && isWinloaded && !autoLoadElem &&
 						lazySizesConfig.preloadAfterLoad && isPreloading < 2 &&
 						((eLbottom || eLright || eLleft || eLtop) || lazyloadElems[globalLazyIndex].getAttribute(lazySizesConfig.sizesAttr) != 'auto')){
 						autoLoadElem = lazyloadElems[globalLazyIndex];
