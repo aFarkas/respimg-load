@@ -1,11 +1,11 @@
 (function (factory) {
-	window.lazySizes = factory();
+	window.lazySizes = factory(window);
 	if (typeof define === 'function' && define.amd) {
 		define(function() {
 			return window.lazySizes;
 		});
 	}
-}(function () {
+}(function (window) {
 	'use strict';
 	/*jshint eqnull:true */
 	if(!Date.now || !window.document.getElementsByClassName){return;}
@@ -20,7 +20,7 @@
 
 	var regPicture = /^picture$/i;
 	var regImg = /^img$/i;
-	var inViewTreshhold = 40;
+	var inViewTreshhold = 10;
 
 	var setImmediate = window.setImmediate || window.setTimeout;
 	var addRemoveImgEvents = function(dom, fn, add){
@@ -44,6 +44,7 @@
 		return event;
 	};
 
+	/*
 	if(document.documentElement.classList){
 		addClass = function(el, cls){
 			el.classList.add(cls);
@@ -55,22 +56,25 @@
 			return el.classList.contains(cls);
 		};
 	} else {
-		addClass = function(ele, cls) {
-			if (!hasClass(ele, cls)){
-				ele.className += " "+cls;
-			}
-		};
-		removeClass = function(ele, cls) {
-			var reg;
-			if (hasClass(ele,cls)) {
-				reg = new RegExp('(\\s|^)'+cls+'(\\s|$)');
-				ele.className = ele.className.replace(reg,' ');
-			}
-		};
-		hasClass = function hasClass(ele,cls) {
-			return ele.className.match(new RegExp('(\\s|^)'+cls+'(\\s|$)'));
-		};
+
 	}
+	*/
+
+	addClass = function(ele, cls) {
+		if (!hasClass(ele, cls)){
+			ele.className += " "+cls;
+		}
+	};
+	removeClass = function(ele, cls) {
+		var reg;
+		if (hasClass(ele,cls)) {
+			reg = new RegExp('(\\s|^)'+cls+'(\\s|$)');
+			ele.className = ele.className.replace(reg,' ');
+		}
+	};
+	hasClass = function hasClass(ele,cls) {
+		return ele.className.match(new RegExp('(\\s|^)'+cls+'(\\s|$)'));
+	};
 
 	function updatePolyfill(el, full){
 		var imageData;
@@ -84,8 +88,6 @@
 				}
 			}
 			respimage({reparse: true, elements: [el]});
-		} else if(!window.HTMLPictureElement && window.console && document.readyState == 'complete'){
-			console.log('use respimg polyfill: http://bit.ly/1FCts3P');
 		}
 	}
 
@@ -112,18 +114,11 @@
 			evalLazyElements();
 			setTimeout(unblock);
 		};
-		return {
-			debounce: function(){
-				clearTimeout(timer);
+		return  function(){
+			if(!running){
 				running = true;
+				clearTimeout(timer);
 				timer = setTimeout(run, 66);
-			},
-			throttled: function(){
-				if(!running){
-					running = true;
-					clearTimeout(timer);
-					timer = setTimeout(run, 66);
-				}
 			}
 		};
 	})();
@@ -146,7 +141,11 @@
 					(eLleft = rect.left) <= eLvW &&
 					(eLbottom || eLright || eLleft || eLtop) &&
 					(!isWinloaded || getComputedStyle(lazyloadElems[globalLazyIndex], null).visibility != 'hidden')){
-					unveilLazy(lazyloadElems[globalLazyIndex]);
+					if(('onload' in lazyloadElems[globalLazyIndex])){
+						preload(lazyloadElems[globalLazyIndex]);
+					} else {
+						unveilLazy(lazyloadElems[globalLazyIndex]);
+					}
 					loadedSomething = true;
 				} else  {
 					if(globalLazyIndex < eLlen - 1 && Date.now() - eLnow > 9){
@@ -169,7 +168,7 @@
 		}
 	};
 	var switchLoadingClass = function(e){
-		addClass(e.target, e.target.getAttribute('data-loadedclass') || lazySizesConfig.loadedClass);
+		addClass(e.target, lazySizesConfig.loadedClass);
 		removeClass(e.target, lazySizesConfig.loadingClass);
 		addRemoveImgEvents(e.target, switchLoadingClass);
 	};
@@ -179,7 +178,7 @@
 		elem = unveilLazy(elem);
 		addRemoveImgEvents(elem, resetPreloading, true);
 		clearTimeout(resetPreloadingTimer);
-		resetPreloadingTimer = setTimeout(resetPreloading, 999);
+		resetPreloadingTimer = setTimeout(resetPreloading, 3000);
 	}
 
 	function clearLazyTimer(){
@@ -360,43 +359,43 @@
 	// The main check functions are written to run extreme fast without consuming memory.
 
 	var onload = function(){
-		inViewTreshhold = 600;
+		inViewTreshhold = lazySizesConfig.preloadAfterLoad ? 60 : 280;
 
-		document.addEventListener('load', lazyEvalLazy.throttled, true);
+		document.addEventListener('load', lazyEvalLazy, true);
 		isWinloaded = true;
 	};
 	var onready = function(){
 
 		if(lazySizesConfig.mutation){
 			if(window.MutationObserver){
-				new MutationObserver( lazyEvalLazy.throttled ).observe( docElem, {childList: true, subtree: true, attributes: true} );
+				new MutationObserver( lazyEvalLazy ).observe( docElem, {childList: true, subtree: true, attributes: true} );
 			} else {
-				docElem.addEventListener( "DOMNodeInserted", lazyEvalLazy.throttled, true);
-				docElem.addEventListener( "DOMAttrModified", lazyEvalLazy.throttled, true);
+				docElem.addEventListener( "DOMNodeInserted", lazyEvalLazy, true);
+				docElem.addEventListener( "DOMAttrModified", lazyEvalLazy, true);
 			}
 		}
 
 		//:hover
 		if(lazySizesConfig.hover){
-			document.addEventListener('mouseover', lazyEvalLazy.throttled, true);
+			document.addEventListener('mouseover', lazyEvalLazy, true);
 		}
 		//:focus/active
-		document.addEventListener('focus', lazyEvalLazy.throttled, true);
+		document.addEventListener('focus', lazyEvalLazy, true);
 		//:target
-		window.addEventListener('hashchange', lazyEvalLazy.throttled, true);
+		window.addEventListener('hashchange', lazyEvalLazy, true);
 
 		//:fullscreen
 		if(('onmozfullscreenchange' in docElem)){
-			window.addEventListener('mozfullscreenchange', lazyEvalLazy.throttled, true);
+			window.addEventListener('mozfullscreenchange', lazyEvalLazy, true);
 		} else if(('onwebkitfullscreenchange' in docElem)){
-			window.addEventListener('webkitfullscreenchange', lazyEvalLazy.throttled, true);
+			window.addEventListener('webkitfullscreenchange', lazyEvalLazy, true);
 		} else {
-			window.addEventListener('fullscreenchange', lazyEvalLazy.throttled, true);
+			window.addEventListener('fullscreenchange', lazyEvalLazy, true);
 		}
 
 		if(lazySizesConfig.cssanimation){
-			document.addEventListener('animationstart', lazyEvalLazy.throttled, true);
-			document.addEventListener('transitionstart', lazyEvalLazy.throttled, true);
+			document.addEventListener('animationstart', lazyEvalLazy, true);
+			document.addEventListener('transitionstart', lazyEvalLazy, true);
 		}
 	};
 
@@ -417,7 +416,7 @@
 			srcsetAttr: 'data-srcset',
 			sizesAttr: 'data-sizes',
 			//addClasses: false,
-			//preloadAfterLoad: false,
+			preloadAfterLoad: true,
 			onlyLargerSizes: true
 		};
 
@@ -435,7 +434,43 @@
 		autosizesElems = document.getElementsByClassName(lazySizesConfig.autosizesClass);
 
 		if(lazySizesConfig.scroll) {
-			addEventListener('scroll', lazyEvalLazy.throttled, true);
+			addEventListener('scroll', (function(){
+				var afterScrollTimer, checkElem, checkTimer, top, left;
+				var checkFn = function(){
+					var nTop = checkElem.scrollTop || checkElem.pageYOffset || 0;
+					var nLeft = checkElem.scrollLeft || checkElem.pageXOffset || 0;
+					checkElem = null;
+
+					if(Math.abs(top - nTop) < 99 && Math.abs(left - nLeft) < 99){
+						update();
+					}
+				};
+				var update = function(){
+					lazyEvalLazy();
+					clearTimeout(afterScrollTimer);
+					clearTimeout(checkTimer);
+					checkElem = null;
+				};
+
+				return function(e){
+
+					var elem = e.target == document ? window : e.target;
+
+					clearTimeout(afterScrollTimer);
+					afterScrollTimer = setTimeout(update, 44);
+
+					if(!checkElem){
+						checkElem = elem;
+						top = checkElem.scrollTop || checkElem.pageYOffset || 0;
+						left = checkElem.scrollLeft || checkElem.pageXOffset || 0;
+						clearTimeout(checkTimer);
+						checkTimer = setTimeout(checkFn, 99);
+					} else if(elem != checkElem){
+						update();
+					}
+					elem = null;
+				};
+			})(), true);
 		}
 
 		addEventListener('resize', lazyEvalLazy.debounce, false);
@@ -451,10 +486,10 @@
 			onload();
 		} else {
 			addEventListener('load', onload, false);
-			document.addEventListener('readystatechange', lazyEvalLazy.throttled, false);
+			document.addEventListener('readystatechange', lazyEvalLazy, false);
 		}
 
-		lazyEvalLazy.throttled();
+		lazyEvalLazy();
 		removeClass(docElem, 'no-js');
 	});
 
@@ -466,7 +501,7 @@
 				clearLazyTimer();
 				evalLazyElements();
 			} else {
-				lazyEvalLazy.throttled();
+				lazyEvalLazy();
 			}
 		},
 		unveilLazy: function(el){
